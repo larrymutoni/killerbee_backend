@@ -9,7 +9,7 @@ module.exports = function (req, res, next) {
   const token = parts[1];
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET || 'dev_secret_key');
-    // payload should contain: sub (user id), role (number), username optional
+    
     req.user = payload;
     next();
   } catch (err) {

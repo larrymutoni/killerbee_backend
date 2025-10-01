@@ -6,7 +6,7 @@ const User = sequelize.define('User', {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   username: { type: DataTypes.STRING(150), unique: true, allowNull: false },
   password: { type: DataTypes.STRING(200), allowNull: false },
-  role: { type: DataTypes.INTEGER, allowNull: false } // 1=Admin,2=R&D,3=Test,4=Prod
+  role: { type: DataTypes.INTEGER, allowNull: false }
 }, {
   tableName: 'Users',
   hooks: {

@@ -8,7 +8,7 @@ const Joi = require('joi');
 
 const schema = Joi.object({
   receiver: Joi.string().max(256).required(),
-  content: Joi.string().required() // plaintext; service will encrypt
+  content: Joi.string().required() 
 });
 
 router.use(auth);

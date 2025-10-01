@@ -10,7 +10,7 @@ function encrypt(text) {
   let encrypted = cipher.update(text, 'utf8');
   encrypted = Buffer.concat([encrypted, cipher.final()]);
   const tag = cipher.getAuthTag();
-  // store iv + tag + encrypted
+  
   return { iv, tag, encrypted };
 }
 
@@ -29,7 +29,7 @@ exports.sendMessage = async (req, res, next) => {
   try {
     const { receiver, content } = req.body;
     const { iv, tag, encrypted } = encrypt(content);
-    // store encrypted + iv + tag
+    
     const rec = await Communication.create({
       sender: req.user.username || req.user.sub,
       receiver,
@@ -37,7 +37,7 @@ exports.sendMessage = async (req, res, next) => {
       iv,
       encryptedFlag: true
     });
-    // store tag in a column? We didn't define tag column; we can store it in iv's trailing bits or extend model - for dev keep tag in iv (not ideal)
+    
     res.status(201).json({ id: rec.id });
   } catch (err) { next(err); }
 };
@@ -47,14 +47,14 @@ exports.getMessages = async (req, res, next) => {
     const rows = await Communication.findAll({
       where: { receiver: req.user.username || req.user.sub }
     });
-    // Decrypt each (dev)
+    
     const msgs = rows.map(r => {
-      // NOTE: given our model above we stored iv and content; tag handling simplified for dev: we didn't preserve tag separately.
+      
       return {
         id: r.id,
         sender: r.sender,
         receiver: r.receiver,
-        // do not attempt to decrypt if tag missing — for dev, return encrypted flag and createdAt
+        
         encryptedFlag: r.encryptedFlag,
         createdAt: r.createdAt
       };

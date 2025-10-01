@@ -14,10 +14,9 @@ exports.signup = async (req, res, next) => {
       return res.status(400).json({ error: 'Username already exists' });
     }
 
-    // Remove manual hashing since User model hooks handle it
     const user = await User.create({ 
       username, 
-      password, // Plain password - will be hashed by model hooks
+      password, 
       role 
     });
     

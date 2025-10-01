@@ -1,6 +1,6 @@
 const Model = require('../models/Model');
 
-// Create Model (R&D only)
+
 exports.createModel = async (req, res, next) => {
   try {
     const model = await Model.create({
@@ -11,7 +11,6 @@ exports.createModel = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// Get all models (role-filtered)
 exports.getModels = async (req, res, next) => {
   try {
     switch(req.user.role) {
@@ -32,7 +31,7 @@ exports.getModels = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// Get approved models (Production only)
+
 exports.getApprovedModels = async (req, res, next) => {
   try {
     const models = await Model.findAll({
@@ -42,13 +41,12 @@ exports.getApprovedModels = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// Get single model
 exports.getModelById = async (req, res, next) => {
   try {
     const model = await Model.findByPk(req.params.id);
     if (!model) return res.status(404).json({ error: 'Model not found' });
     
-    // Production can only see approved models
+    
     if (req.user.role === 4 && model.status !== 'APPROVED') {
       return res.status(403).json({ error: 'Access denied' });
     }
@@ -57,7 +55,6 @@ exports.getModelById = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// Update model (R&D only)
 exports.updateModel = async (req, res, next) => {
   try {
     const model = await Model.findByPk(req.params.id);
@@ -72,7 +69,7 @@ exports.updateModel = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// Validate model (Test department only)
+
 exports.validateModel = async (req, res, next) => {
   try {
     const model = await Model.findByPk(req.params.id);
@@ -93,7 +90,6 @@ exports.validateModel = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// Approve model (Admin only)
 exports.approveModel = async (req, res, next) => {
   try {
     const model = await Model.findByPk(req.params.id);
@@ -113,7 +109,6 @@ exports.approveModel = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// Delete model (Admin only)
 exports.deleteModel = async (req, res, next) => {
   try {
     const model = await Model.findByPk(req.params.id);

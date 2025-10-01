@@ -8,12 +8,12 @@ const net = require('net');
 
 const app = express();
 
-// Core Middleware
+
 app.use(express.json());
 app.use(helmet());
 app.use(morgan('dev'));
 
-// Request logging
+
 app.use((req, res, next) => {
   console.log('Request received:', {
     method: req.method,
@@ -24,16 +24,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// Public routes BEFORE auth middleware
+
 app.use('/auth', require('./routes/auth'));
 
-// Protected routes
 app.use('/models', auth, require('./routes/models'));
 app.use('/ingredients', auth, require('./routes/ingredients'));
 app.use('/processes', auth, require('./routes/processes'));
 app.use('/communications', auth, require('./routes/communications'));
 
-// Error handler
+
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(500).json({ 
@@ -42,7 +41,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Port handling utilities
 async function isPortInUse(port) {
   return new Promise((resolve, reject) => {
     const tester = net.createServer()
@@ -77,7 +75,7 @@ async function getAvailablePort(startPort) {
   throw new Error(`No available ports found between ${startPort} and ${maxPort}`);
 }
 
-// Database connection with retry
+
 async function connectDB(retries = 5) {
   for (let i = 0; i < retries; i++) {
     try {
@@ -97,19 +95,19 @@ async function connectDB(retries = 5) {
   return false;
 }
 
-// Server startup
+
 const DEFAULT_PORT = 5000;
 let server;
 
 async function startServer() {
   try {
-    // Check database connection
+    
     const dbConnected = await connectDB();
     if (!dbConnected) {
       throw new Error('Could not connect to database after retries');
     }
 
-    // Find available port
+    
     const desiredPort = parseInt(process.env.PORT || DEFAULT_PORT, 10);
     const port = await getAvailablePort(desiredPort);
     
@@ -117,12 +115,12 @@ async function startServer() {
       console.log(`Port ${desiredPort} was in use, using port ${port} instead`);
     }
 
-    // Start server
+    
     server = app.listen(port, () => {
       console.log(`Backend running on port ${port}`);
     });
 
-    // Handle server errors
+    
     server.on('error', (err) => {
       console.error('Server error:', err);
       if (err.code === 'EADDRINUSE') {
@@ -141,10 +139,10 @@ async function startServer() {
   }
 }
 
-// Start the server
+
 startServer();
 
-// Graceful shutdown
+
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully');
   if (server) {
@@ -157,13 +155,13 @@ process.on('SIGTERM', async () => {
   }
 });
 
-// Handle uncaught exceptions
+
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
   process.exit(1);
 });
 
-// Handle unhandled promise rejections
+
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);
