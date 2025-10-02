@@ -2,18 +2,29 @@ require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const cors = require('cors');
 const { sequelize } = require('./config/db');
 const auth = require('./middleware/auth');
 const net = require('net');
 
 const app = express();
 
+// CORS configuration - add before other middleware
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
+// Core middleware
 app.use(express.json());
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.use(morgan('dev'));
 
-
+// Request logging
 app.use((req, res, next) => {
   console.log('Request received:', {
     method: req.method,
@@ -24,15 +35,14 @@ app.use((req, res, next) => {
   next();
 });
 
-
+// Routes
 app.use('/auth', require('./routes/auth'));
-
 app.use('/models', auth, require('./routes/models'));
 app.use('/ingredients', auth, require('./routes/ingredients'));
 app.use('/processes', auth, require('./routes/processes'));
 app.use('/communications', auth, require('./routes/communications'));
 
-
+// Error handler
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(500).json({ 
@@ -75,7 +85,6 @@ async function getAvailablePort(startPort) {
   throw new Error(`No available ports found between ${startPort} and ${maxPort}`);
 }
 
-
 async function connectDB(retries = 5) {
   for (let i = 0; i < retries; i++) {
     try {
@@ -95,19 +104,16 @@ async function connectDB(retries = 5) {
   return false;
 }
 
-
 const DEFAULT_PORT = 5000;
 let server;
 
 async function startServer() {
   try {
-    
     const dbConnected = await connectDB();
     if (!dbConnected) {
       throw new Error('Could not connect to database after retries');
     }
 
-    
     const desiredPort = parseInt(process.env.PORT || DEFAULT_PORT, 10);
     const port = await getAvailablePort(desiredPort);
     
@@ -115,12 +121,10 @@ async function startServer() {
       console.log(`Port ${desiredPort} was in use, using port ${port} instead`);
     }
 
-    
     server = app.listen(port, () => {
       console.log(`Backend running on port ${port}`);
     });
 
-    
     server.on('error', (err) => {
       console.error('Server error:', err);
       if (err.code === 'EADDRINUSE') {
@@ -139,10 +143,9 @@ async function startServer() {
   }
 }
 
-
 startServer();
 
-
+// Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully');
   if (server) {
@@ -155,12 +158,11 @@ process.on('SIGTERM', async () => {
   }
 });
 
-
+// Error handling
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
   process.exit(1);
 });
-
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
